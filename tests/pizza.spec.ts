@@ -103,3 +103,5 @@ test('purchase with login', async ({ page }) => {
 
   await expect(page.getByText('0.008')).toBeVisible();
 });
+
+test('register', async ({page}) => {})
