@@ -80,3 +80,15 @@ test("about", async ({ page }) => {
     await page.getByText('At JWT Pizza, our amazing').click();
     await page.getByRole('heading', { name: 'Our employees' }).click();
 })
+
+test("diner dashboard", async ({ page }) => {
+    await basicInit(page);
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('d@jwt.com');
+    await page.getByRole('textbox', { name: 'Password' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill('a');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('link', { name: 'KC' }).click();
+    await expect(page.getByText('Your pizza kitchen')).toBeVisible();
+    await expect(page.getByText('How have you lived this long')).toBeVisible();
+})
