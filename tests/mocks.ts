@@ -158,6 +158,49 @@ export async function mockFranchises(page: Page, state: MockState) {
     const method = route.request().method();
     if (method === "DELETE") {
       await route.fulfill({ json: { message: "franchise deleted" } });
+    } else if (method === "GET") {
+      await route.fulfill({
+        json: [
+          {
+            id: 2,
+            name: "LotaPizza",
+            admins: [
+              { id: 15, name: "The True Franchisee", email: "f@jwt.com" },
+            ],
+            stores: [{ id: 4, name: "Lehi", totalRevenue: 0.05 }],
+          },
+        ],
+      });
+    }
+  });
+
+  await page.route("*/**/api/franchise/*/store", async (route) => {
+    const method = route.request().method();
+    if (method === "POST") {
+      const req = route.request().postDataJSON();
+      const { franchiseId, name } = req;
+      if (!name || !franchiseId) {
+        await route.fulfill({
+          status: 401,
+          json: { error: "Incomplete information" },
+        });
+        return;
+      }
+
+      await route.fulfill({
+        json: {
+          id: 1,
+          name: name,
+          totalRevenue: 0,
+        },
+      });
+    }
+  });
+
+  await page.route("*/**/api/franchise/*/store/*", async (route) => {
+    const method = route.request().method();
+    if (method === "DELETE") {
+      await route.fulfill({ json: { message: "store deleted" } });
     }
   });
 }

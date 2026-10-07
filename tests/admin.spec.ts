@@ -42,3 +42,32 @@ test("close franchise", async ({ page }) => {
   await page.getByRole("button", { name: "Close" }).click();
   await expect(page).toHaveURL(/admin-dashboard$/);
 });
+
+test("create store", async ({ page }) => {
+    await basicInit(page);
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('f@jwt.com');
+    await page.getByRole('textbox', { name: 'Password' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill('franchisee');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('navigation', { name: 'Global' }).getByRole('link', { name: 'Franchise' }).click();
+    await expect(page.getByText('Everything you need to run an')).toBeVisible();
+    await page.getByRole('button', { name: 'Create store' }).click();
+    await page.getByRole('textbox', { name: 'store name' }).click();
+    await page.getByRole('textbox', { name: 'store name' }).fill('fresh pizza here and now');
+    await expect(page.getByText('Create store')).toBeVisible();
+    await page.getByRole('button', { name: 'Create' }).click();
+})
+
+test("delete store", async ({ page }) => {
+    await basicInit(page);
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('f@jwt.com');
+    await page.getByRole('textbox', { name: 'Password' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill('franchisee');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('navigation', { name: 'Global' }).getByRole('link', { name: 'Franchise' }).click();
+    await page.getByRole('row', { name: /^Lehi/ }).getByRole('button').click();
+    await expect(page.getByText('Sorry to see you go')).toBeVisible();
+    await page.getByRole('button', { name: 'Close' }).click();
+})
