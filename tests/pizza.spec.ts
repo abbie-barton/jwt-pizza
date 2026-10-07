@@ -66,29 +66,31 @@ test("logout", async ({ page }) => {
 });
 
 test("not found", async ({ page }) => {
-    await basicInit(page);
-    await page.goto('http://localhost:5173/abcd');
-    await page.getByText('Oops').click();
-    await page.getByText('It looks like we have dropped').click();
-})
+  await basicInit(page);
+  await page.goto("http://localhost:5173/abcd");
+  await page.getByText("Oops").click();
+  await page.getByText("It looks like we have dropped").click();
+});
 
 test("about", async ({ page }) => {
-    await basicInit(page);
-    await page.goto('http://localhost:5173/');
-    await page.getByRole('link', { name: 'About' }).click();
-    await page.getByText('The secret sauce').click();
-    await page.getByText('At JWT Pizza, our amazing').click();
-    await page.getByRole('heading', { name: 'Our employees' }).click();
-})
+  await basicInit(page);
+  await page.goto("http://localhost:5173/");
+  await page.getByRole("link", { name: "About" }).click();
+  await page.getByText("The secret sauce").click();
+  await page.getByText("At JWT Pizza, our amazing").click();
+  await page.getByRole("heading", { name: "Our employees" }).click();
+});
 
 test("diner dashboard", async ({ page }) => {
-    await basicInit(page);
-    await page.getByRole('link', { name: 'Login' }).click();
-    await page.getByRole('textbox', { name: 'Email address' }).fill('d@jwt.com');
-    await page.getByRole('textbox', { name: 'Password' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill('a');
-    await page.getByRole('button', { name: 'Login' }).click();
-    await page.getByRole('link', { name: 'KC' }).click();
-    await expect(page.getByText('Your pizza kitchen')).toBeVisible();
-    await expect(page.getByText('How have you lived this long')).toBeVisible();
-})
+  await basicInit(page);
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Email address" }).fill("d@jwt.com");
+  await page.getByRole("textbox", { name: "Password" }).click();
+  await page.getByRole("textbox", { name: "Password" }).fill("a");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.getByRole("link", { name: "KC" }).click();
+  await expect(page.getByText("Your pizza kitchen")).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "1", exact: true }),
+  ).toBeVisible();
+});

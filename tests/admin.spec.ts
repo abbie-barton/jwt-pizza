@@ -8,7 +8,7 @@ test("create franchise", async ({ page }) => {
   await page.getByRole("textbox", { name: "Password" }).fill("admin");
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
-  await expect(page.getByRole("heading", { name: "Franchises" }).click());
+  await expect(page.getByRole("heading", { name: "Franchises" })).toBeVisible();
   await page.getByRole("button", { name: "Add Franchise" }).click();
   await page.getByRole("textbox", { name: "franchise name" }).click();
   await page
@@ -18,7 +18,7 @@ test("create franchise", async ({ page }) => {
   await page
     .getByRole("textbox", { name: "franchisee admin email" })
     .fill("a@jwt.com");
-  await page.getByText("Create franchise", { exact: true }).click();
+  await expect(page.getByText("Create franchise", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Create" }).click();
 });
 
