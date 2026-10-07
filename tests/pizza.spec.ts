@@ -64,3 +64,19 @@ test("logout", async ({ page }) => {
   await page.getByRole("link", { name: "Logout" }).click();
   await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
 });
+
+test("not found", async ({ page }) => {
+    await basicInit(page);
+    await page.goto('http://localhost:5173/abcd');
+    await page.getByText('Oops').click();
+    await page.getByText('It looks like we have dropped').click();
+})
+
+test("about", async ({ page }) => {
+    await basicInit(page);
+    await page.goto('http://localhost:5173/');
+    await page.getByRole('link', { name: 'About' }).click();
+    await page.getByText('The secret sauce').click();
+    await page.getByText('At JWT Pizza, our amazing').click();
+    await page.getByRole('heading', { name: 'Our employees' }).click();
+})

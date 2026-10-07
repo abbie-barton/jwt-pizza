@@ -17,6 +17,20 @@ function createMockState(): MockState {
         password: "a",
         roles: [{ role: Role.Diner }],
       },
+      "a@jwt.com": {
+        id: "10",
+        name: "The True Admin",
+        email: "a@jwt.com",
+        password: "admin",
+        roles: [{ role: Role.Admin }],
+      },
+      "f@jwt.com": {
+        id: "15",
+        name: "The True Franchisee",
+        email: "f@jwt.com",
+        password: "franchisee",
+        roles: [{ role: Role.Franchisee }],
+      },
     },
   };
 }
@@ -34,7 +48,6 @@ export async function mockAuth(page: Page, state: MockState) {
       }
       state.loggedInUser = user;
       await route.fulfill({ json: { user, token: "abcdef" } });
-
     } else if (method === "POST") {
       const registerReq = route.request().postDataJSON();
       const { name, email, password } = registerReq;
@@ -55,11 +68,9 @@ export async function mockAuth(page: Page, state: MockState) {
       state.validUsers[email] = newUser;
       state.loggedInUser = newUser;
       await route.fulfill({ json: { user: newUser, token: "testPizzaToken" } });
-    } 
-
-    else if (method === "DELETE") {
-        state.loggedInUser = undefined;
-        await route.fulfill({ json: { message: "logged out" } })
+    } else if (method === "DELETE") {
+      state.loggedInUser = undefined;
+      await route.fulfill({ json: { message: "logged out" } });
     }
   });
 }
@@ -94,25 +105,60 @@ export async function mockMenu(page: Page) {
   });
 }
 
-export async function mockFranchises(page: Page) {
+export async function mockFranchises(page: Page, state: MockState) {
   await page.route(/\/api\/franchise(\?.*)?$/, async (route) => {
-    const franchiseRes = {
-      franchises: [
-        {
-          id: 2,
-          name: "LotaPizza",
-          stores: [
-            { id: 4, name: "Lehi" },
-            { id: 5, name: "Springville" },
-            { id: 6, name: "American Fork" },
+    const method = route.request().method();
+
+    if (method === "GET") {
+      const franchiseRes = {
+        franchises: [
+          {
+            id: 2,
+            name: "LotaPizza",
+            stores: [
+              { id: 4, name: "Lehi" },
+              { id: 5, name: "Springville" },
+              { id: 6, name: "American Fork" },
+            ],
+          },
+          {
+            id: 3,
+            name: "PizzaCorp",
+            stores: [{ id: 7, name: "Spanish Fork" }],
+          },
+          { id: 4, name: "topSpot", stores: [] },
+        ],
+      };
+      await route.fulfill({ json: franchiseRes });
+    } else if (method === "POST") {
+      const req = route.request().postDataJSON();
+      const { name, admins } = req;
+      if (!name || !admins || admins.length === 0) {
+        await route.fulfill({
+          status: 401,
+          json: { error: "Incomplete information" },
+        });
+        return;
+      }
+
+      const adminUser = state.validUsers[admins[0].email];
+      await route.fulfill({
+        json: {
+          name: name,
+          admins: [
+            { email: adminUser.email, id: adminUser.id, name: adminUser.name },
           ],
+          id: 1,
         },
-        { id: 3, name: "PizzaCorp", stores: [{ id: 7, name: "Spanish Fork" }] },
-        { id: 4, name: "topSpot", stores: [] },
-      ],
-    };
-    expect(route.request().method()).toBe("GET");
-    await route.fulfill({ json: franchiseRes });
+      });
+    }
+  });
+
+  await page.route("*/**/api/franchise/*", async (route) => {
+    const method = route.request().method();
+    if (method === "DELETE") {
+      await route.fulfill({ json: { message: "franchise deleted" } });
+    }
   });
 }
 
@@ -133,7 +179,7 @@ export default async function basicInit(page: Page) {
   await mockAuth(page, state);
   await mockUserMe(page, state);
   await mockMenu(page);
-  await mockFranchises(page);
+  await mockFranchises(page, state);
   await mockOrder(page);
   await page.goto("/");
   return state;
