@@ -63,7 +63,15 @@ export default function AdminDashboard(props: Props) {
   }
 
   async function deleteUser(userId: string) {
-    console.log("delete user functionality");
+    try {
+      await pizzaService.deleteUser(userId);
+      setUserList({
+        ...userList,
+        users: userList.users.filter((user) => user.id !== userId),
+      });
+    } catch (error) {
+      console.log("Error deleting user: ", error)
+    }
   }
 
   async function filterFranchises() {

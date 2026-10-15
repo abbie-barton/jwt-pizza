@@ -32,12 +32,10 @@ test("close franchise", async ({ page }) => {
   await page.getByRole("button", { name: "Login" }).click();
   await page.getByRole("link", { name: "Admin" }).click();
   await page.getByRole("heading", { name: "Franchises" }).click();
-  await expect(
-    page
-      .getByRole("row", { name: /^LotaPizza/ })
-      .getByRole("button", { name: "Close" })
-      .click(),
-  );
+  await page
+    .getByRole("row", { name: /^LotaPizza/ })
+    .getByRole("button", { name: "Close" })
+    .click();
   await page.getByText("Sorry to see you go").click();
   await page.getByRole("button", { name: "Close" }).click();
   await expect(page).toHaveURL(/admin-dashboard$/);

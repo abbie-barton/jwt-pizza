@@ -1,4 +1,5 @@
 import { test, expect } from "playwright-test-coverage";
+import basicInit from "./mocks";
 
 test("update user", async ({ page }) => {
   const email = `user${Math.floor(Math.random() * 10000)}@jwt.com`;
@@ -61,10 +62,37 @@ test("list users", async ({ page }) => {
 
     await expect(page.getByText("Users")).toBeVisible();
 
-    await expect(page.getByRole("cell", { name: "a" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "a@jwt.com", exact: true })).toBeVisible();
+})
 
+test("filter user list", async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+    await page.getByRole('textbox', { name: 'Password' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill('admin');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('link', { name: 'Admin' }).click();
+
+    await expect(page.getByRole('cell', { name: 'pizza diner' })).toBeVisible();
+    await page.getByRole('textbox', { name: 'Filter user by name' }).click();
+    await page.getByRole('textbox', { name: 'Filter user by name' }).fill('altan');
+    await page.getByRole('button', { name: 'Submit' }).nth(1).click();
+
+    await expect(page.getByRole('cell', { name: 'altantsetseg' }).nth(2)).toBeVisible();
+    await expect(page.getByRole('button', {name: "»"}).nth(1)).toBeDisabled();
 })
 
 test("delete user", async ({ page }) => {
+    await basicInit(page);
 
+    await page.goto('http://localhost:5173/');
+    await page.getByRole('link', { name: 'Login' }).click();
+    await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
+    await page.getByRole('textbox', { name: 'Password' }).click();
+    await page.getByRole('textbox', { name: 'Password' }).fill('admin');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByRole('link', { name: 'Admin' }).click();
+    
+    await page.getByRole('button', { name: 'Delete' }).nth(2).click();
 })

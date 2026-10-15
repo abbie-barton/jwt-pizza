@@ -82,6 +82,16 @@ export async function mockUserMe(page: Page, state: MockState) {
   });
 }
 
+export async function mockUsers(page: Page, state: MockState) {
+  await page.route(/\/api\/user(\?.*)?$/, async (route) => {
+    expect(route.request().method()).toBe("GET");
+    const users = Object.values(state.validUsers).map(
+      ({ password, ...user }) => user,
+    );
+    await route.fulfill({ json: { users, more: false } });
+  });
+}
+
 export async function mockMenu(page: Page) {
   await page.route("*/**/api/order/menu", async (route) => {
     const menuRes = [
@@ -235,13 +245,24 @@ export async function mockOrder(page: Page) {
   });
 }
 
+export async function mockDelete(page: Page) {
+  await page.route("*/**/api/user", async (route) => {
+    const method = route.request().method();
+    if (method === "DELETE") {
+      await route.fulfill({ json: { message: "user deleted" } });
+    } 
+  });
+}
+
 export default async function basicInit(page: Page) {
   const state = createMockState();
   await mockAuth(page, state);
   await mockUserMe(page, state);
+  await mockUsers(page, state);
   await mockMenu(page);
   await mockFranchises(page, state);
   await mockOrder(page);
+  await mockDelete(page);
   await page.goto("/");
   return state;
 }
