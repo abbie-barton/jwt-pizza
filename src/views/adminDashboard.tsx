@@ -37,9 +37,14 @@ export default function AdminDashboard(props: Props) {
   React.useEffect(() => {
     (async () => {
       setFranchiseList(await pizzaService.getFranchises(franchisePage, 3, "*"));
-      setUserList(await pizzaService.getUsers(userPage, 3, "*"));
     })();
   }, [props.user, franchisePage]);
+
+  React.useEffect(() => {
+    (async () => {
+      setUserList(await pizzaService.getUsers(userPage, 3, "*"));
+    })();
+  }, [props.user, userPage])
 
   function createFranchise() {
     navigate("/admin-dashboard/create-franchise");
