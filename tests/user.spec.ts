@@ -1,9 +1,9 @@
-import { test, expect } from "playwright-test-coverage";
+import { test, expect } from "./testSetup";
 import basicInit from "./mocks";
 
 test("update user", async ({ page }) => {
   const email = `user${Math.floor(Math.random() * 10000)}@jwt.com`;
-  await page.goto("/");
+  await basicInit(page);
   await page.getByRole("link", { name: "Register" }).click();
   await page.getByRole("textbox", { name: "Full name" }).fill("pizza diner");
   await page.getByRole("textbox", { name: "Email address" }).fill(email);
@@ -38,7 +38,7 @@ test("update user", async ({ page }) => {
 });
 
 test("update user with admin role", async ({ page }) => {
-  await page.goto("/");
+  await basicInit(page);
   await page.getByRole("link", { name: "Login" }).click();
   await page.getByRole("textbox", { name: "Email address" }).fill("a@jwt.com");
   await page.getByRole("textbox", { name: "Email address" }).press("Tab");
@@ -52,7 +52,7 @@ test("update user with admin role", async ({ page }) => {
 });
 
 test("list users", async ({ page }) => {
-    await page.goto("/");
+    await basicInit(page);
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
     await page.getByRole('textbox', { name: 'Password' }).click();
@@ -66,7 +66,7 @@ test("list users", async ({ page }) => {
 })
 
 test("filter user list", async ({ page }) => {
-    await page.goto('/');
+    await basicInit(page);
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
     await page.getByRole('textbox', { name: 'Password' }).click();
@@ -74,19 +74,18 @@ test("filter user list", async ({ page }) => {
     await page.getByRole('button', { name: 'Login' }).click();
     await page.getByRole('link', { name: 'Admin' }).click();
 
-    await expect(page.getByRole('cell', { name: 'pizza diner' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: 'The True Admin' })).toBeVisible();
     await page.getByRole('textbox', { name: 'Filter user by name' }).click();
-    await page.getByRole('textbox', { name: 'Filter user by name' }).fill('altan');
+    await page.getByRole('textbox', { name: 'Filter user by name' }).fill('kai');
     await page.getByRole('button', { name: 'Submit' }).nth(1).click();
 
-    await expect(page.getByRole('cell', { name: 'altantsetseg' }).nth(2)).toBeVisible();
+    await expect(page.getByRole('cell', { name: 'Kai Chen' })).toBeVisible();
     await expect(page.getByRole('button', {name: "»"}).nth(1)).toBeDisabled();
 })
 
 test("delete user", async ({ page }) => {
     await basicInit(page);
 
-    await page.goto('http://localhost:5173/');
     await page.getByRole('link', { name: 'Login' }).click();
     await page.getByRole('textbox', { name: 'Email address' }).fill('a@jwt.com');
     await page.getByRole('textbox', { name: 'Password' }).click();

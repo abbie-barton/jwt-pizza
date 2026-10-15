@@ -85,10 +85,41 @@ export async function mockUserMe(page: Page, state: MockState) {
 export async function mockUsers(page: Page, state: MockState) {
   await page.route(/\/api\/user(\?.*)?$/, async (route) => {
     expect(route.request().method()).toBe("GET");
-    const users = Object.values(state.validUsers).map(
-      ({ password, ...user }) => user,
-    );
+    const nameFilter = new URL(route.request().url()).searchParams.get("name") ?? "*";
+    const search = nameFilter.replace(/\*/g, "").toLowerCase();
+    const users = Object.values(state.validUsers)
+      .filter((user) => user.name?.toLowerCase().includes(search))
+      .map(({ password, ...user }) => user);
     await route.fulfill({ json: { users, more: false } });
+  });
+}
+
+export async function mockUser(page: Page, state: MockState) {
+  await page.route(/\/api\/user\/\d+$/, async (route) => {
+    const method = route.request().method();
+    const userId = new URL(route.request().url()).pathname.split("/").pop();
+    const existing = Object.values(state.validUsers).find((user) => user.id === userId);
+    if (!existing) {
+      await route.fulfill({ status: 404, json: { message: "unknown user" } });
+      return;
+    }
+
+    if (method === "PUT") {
+      const updateReq = route.request().postDataJSON();
+      const updatedUser: User = {
+        ...existing,
+        name: updateReq.name ?? existing.name,
+        email: updateReq.email ?? existing.email,
+        password: updateReq.password ?? existing.password,
+      };
+      delete state.validUsers[existing.email!];
+      state.validUsers[updatedUser.email!] = updatedUser;
+      state.loggedInUser = updatedUser;
+      await route.fulfill({ json: { user: updatedUser, token: "abcdef" } });
+    } else if (method === "DELETE") {
+      delete state.validUsers[existing.email!];
+      await route.fulfill({ json: { message: "user deleted" } });
+    }
   });
 }
 
@@ -245,24 +276,15 @@ export async function mockOrder(page: Page) {
   });
 }
 
-export async function mockDelete(page: Page) {
-  await page.route("*/**/api/user", async (route) => {
-    const method = route.request().method();
-    if (method === "DELETE") {
-      await route.fulfill({ json: { message: "user deleted" } });
-    } 
-  });
-}
-
 export default async function basicInit(page: Page) {
   const state = createMockState();
   await mockAuth(page, state);
   await mockUserMe(page, state);
   await mockUsers(page, state);
+  await mockUser(page, state);
   await mockMenu(page);
   await mockFranchises(page, state);
   await mockOrder(page);
-  await mockDelete(page);
   await page.goto("/");
   return state;
 }
