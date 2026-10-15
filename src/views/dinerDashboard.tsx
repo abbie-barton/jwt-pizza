@@ -18,6 +18,7 @@ export default function DinerDashboard(props: Props) {
   const nameRef = React.useRef<HTMLInputElement>(null);
   const emailRef = React.useRef<HTMLInputElement>(null);
   const passwordRef = React.useRef<HTMLInputElement>(null);
+  const [message, setMessage] = React.useState("");
 
   React.useEffect(() => {
     (async () => {
@@ -45,12 +46,21 @@ export default function DinerDashboard(props: Props) {
       roles: user.roles,
     };
 
-    await pizzaService.updateUser(updatedUser);
+    try {
+      await pizzaService.updateUser(updatedUser);
 
-    props.setUser(updatedUser);
-    setTimeout(() => {
-      HSOverlay.close(document.getElementById("hs-jwt-modal")!);
-    }, 100);
+      displayMessage("");
+      props.setUser(updatedUser);
+      setTimeout(() => {
+        HSOverlay.close(document.getElementById("edit-user-modal")!);
+      }, 100);
+    } catch (error) {
+      displayMessage(JSON.stringify(error));
+    }
+  }
+
+  function displayMessage(msg: string) {
+    setMessage(msg);
   }
 
   return (
@@ -68,7 +78,7 @@ export default function DinerDashboard(props: Props) {
           title="Edit"
           className="w-16 p-0"
           onPress={() =>
-            HSOverlay.open(document.getElementById("hs-jwt-modal")!)
+            HSOverlay.open(document.getElementById("edit-user-modal")!)
           }
         />
 
@@ -166,7 +176,7 @@ export default function DinerDashboard(props: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
-        id="hs-jwt-modal"
+        id="edit-user-modal"
         className="hs-overlay hidden size-full fixed top-10 start-0 z-[80] overflow-x-hidden overflow-y-auto pointer-events-none"
       >
         <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto min-h-[calc(100%-3.5rem)]">
@@ -176,12 +186,13 @@ export default function DinerDashboard(props: Props) {
               <button
                 type="button"
                 className="flex justify-center items-center size-7 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none"
-                data-hs-overlay="#hs-jwt-modal"
+                data-hs-overlay="#edit-user-modal"
               >
                 <CloseIcon className="" />
               </button>
             </div>
             <div className="p-4 overflow-y-scroll max-h-52">
+              <div className="text-sm text-red-600 font-normal">{message}</div>
               <div className="my-4 text-lg text-start grid grid-cols-5 gap-2 items-center">
                 <div className="font-semibold">name:</div>
                 <input
