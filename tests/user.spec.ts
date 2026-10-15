@@ -49,3 +49,11 @@ test("update user with admin role", async ({ page }) => {
   await page.getByRole("textbox").first().fill("altantsetseg");
   await page.getByRole("button", { name: "Update" }).click();
 });
+
+test("list users", async ({ page }) => {
+
+})
+
+test("delete user", async ({ page }) => {
+    
+})
