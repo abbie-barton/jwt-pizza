@@ -37,6 +37,7 @@ export default function AdminDashboard(props: Props) {
   React.useEffect(() => {
     (async () => {
       setFranchiseList(await pizzaService.getFranchises(franchisePage, 3, "*"));
+      setUserList(await pizzaService.getUsers(userPage, 3, "*"));
     })();
   }, [props.user, franchisePage]);
 
@@ -71,7 +72,13 @@ export default function AdminDashboard(props: Props) {
   }
 
   async function filterUsers() {
-    console.log("Filter users here");
+    setUserList(
+      await pizzaService.getUsers(
+        userPage,
+        10,
+        `*${filterUserRef.current?.value}*`,
+      ),
+    );
   }
 
   let response = <NotFound />;
@@ -234,7 +241,7 @@ export default function AdminDashboard(props: Props) {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="uppercase text-neutral-100 bg-slate-400 border-b-2 border-gray-500">
                         <tr>
-                          {["Name", "Email", "Role"].map((header) => (
+                          {["Name", "Email", "Role", "Action"].map((header) => (
                             <th
                               key={header}
                               scope="col"
@@ -259,7 +266,9 @@ export default function AdminDashboard(props: Props) {
                                 {user.email}
                               </td>
                               <td className="text-start px-2 whitespace-nowrap text-sm font-normal text-gray-800">
-                                {user.roles?.map((r) => r.role).join(", ")}
+                                {[
+                                  ...new Set(user.roles?.map((r) => r.role)),
+                                ].join(", ")}
                               </td>
                               <td className="px-6 py-1 whitespace-nowrap text-end text-sm font-medium">
                                 <button
@@ -268,7 +277,7 @@ export default function AdminDashboard(props: Props) {
                                   onClick={() => deleteUser(user.id!)}
                                 >
                                   <TrashIcon />
-                                  Close
+                                  Delete
                                 </button>
                               </td>
                             </tr>
