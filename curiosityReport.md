@@ -18,13 +18,78 @@ Since shell scripts run with all of the permissions of the user, they have inher
 ### Current state of the art
 Bash has been used for a long time and likely won't go away anytime soon since it's on every computer. There are new updates coming out still as it's an active project, with the recent update coming out in 2025 containing script performance improvements (https://www.linux-magazine.com/index.php/Issues/2026/305/Bash-5.3/(tagID)/32). There are also structured shells such as Nushell, which operates on data like tables and lists so you don't have to do so much string parsing - though they don't work with the same bash commands as normal shell scripts. You can also write scripts very similar to shell scripts in Javascript and Typescript using Bun Shell that works across Linux, Windows, and macOS. These updates and new tools coming out increase the safety and portability of shell scripts, so they can be used more often and more safely.
 
-## Experiment - 
+## Experiment
+### Downloads Folder Management
+This experiment deals with shell scripts and file management and cron jobs. The steps below are specifically for a Mac. 
+
+This script can go anywhere on your computer, and will sort files in the given folder into several sections that can be customized to whatever names and file extensions you want. I put the script in a 'scripts' folder, and we will name it organize.sh. First off, all shell scripts need `#!/bin/bash` at the top so that the runner knows what shell can run the script. The code uses a for loop to look at every file in the folder we're looking at and places them in the correct destination according to lines 13-18. These can be changed to different names or types. It then moves all of the files into the correct folder, without creating a new folder if the destination already exists.
+```
+#!/bin/bash
+# usage: ./organize.sh [folder]  
+
+DIR="${1:-$HOME/Downloads}"
+
+for file in "$DIR"/*; do
+  [ -f "$file" ] || continue            
+
+  ext="${file##*.}"
+  ext="$(echo "$ext" | tr '[:upper:]' '[:lower:]')"   # PDF -> pdf
+
+  case "$ext" in
+    crdownload|part|download|tmp) continue ;;   # still downloading, leave it
+    pdf|docx|doc|txt|pptx|xlsx)  dest="Documents" ;;
+    jpg|jpeg|png|gif|heic|webp)  dest="Pictures" ;;
+    zip|tar|gz|rar)              dest="Archives" ;;
+    dmg|pkg)                     dest="Installers" ;;
+    *)                           dest="Other" ;;
+  esac
+
+  mkdir -p "$DIR/$dest"
+  mv -n "$file" "$DIR/$dest/"           # -n = never overwrite an existing file
+  echo "$(date '+%F %T') moved $(basename "$file") -> $dest"
+done
+```
+We then need to add permissions so that we can run the file: `chmod +x ~/scripts/organize.sh`, where you replace the directory with where you put your organize.sh script. After this, I tested on a test folder with multiple file types to make sure the script worked - the following code is targeting a `test-downloads` folder in the same directory as the `scripts` folder.
+
+To add scheduling to this script, I first tried it with cron but found that that operation doesn't work on Mac, so I moved to a job with launchd. To do this, run `nano ~/Library/LaunchAgents/com.NAME.organize.plist` and paste in the following code, replacing `/Users/YOURNAME` with your correct path (lines 11-12, 17) and `com.NAME.organize` on line 6 with the name you put in the command above. 
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.NAME.organize</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/YOURNAME/scripts/organize.sh</string>
+    <string>/Users/YOURNAME/test-downloads</string>
+  </array>
+
+  <key>WatchPaths</key>
+  <array>
+    <string>/Users/YOURNAME/test-downloads</string>
+  </array>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/organize.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/organize.err</string>
+</dict>
+</plist>
+```
+Run this command to turn on the job: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.abbie.organize.plist`. Now, when we put a new file into our test-downloads folder, the code will automatically sort it into the folders specified by the shell script. Drag a file into the test-downloads folder and run `cat /tmp/organize.out` and `cat /tmp/organize.err` to see if it worked. If it doesn't work (this happened to me), you might need to add `/bin/bash` to the access list for Full Disk Access in System Settings (this does give every bash script full disk access, so it is something to be careful with). `cat /tmp/organize.out` should show which files got sorted into which folders. At this point, we have a working shell script and launchd job.
+
+To turn it off, run `launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.NAME.organize.plist
+rm ~/Library/LaunchAgents/com.NAME.organize.plist` and turn off `bin/bash` access in your disk access settings.
 
 ### What I Learned
+Shell scripts seem like they might be simple or not used for much on the surface, but it would take a lot to become an expert on how to use them and the multitude of different ways they can be used. 
 
 
 ### Sources & Research
-To research this topic, I first looked at some blog posts talking about what shell scripting was and what it could do as well as the gnu guide for syntax and definition. I also asked AI for some high level definitions and what some possible things you can do with shell scripts are, so I could see the possibilities of what one could do with them. I also went back to the scripts used in the course to delve deeper and understand further what they do. 
+To research this topic, I first looked at some blog posts talking about what shell scripting was and what it could do as well as the gnu guide for syntax and definition. I also asked AI for some high level definitions and what some possible things you can do with shell scripts are, so I could see the possibilities of what one could do with them. I also went back to the scripts used in the course to delve deeper and understand further what they do. <br/>
 https://www.coursera.org/articles/what-is-shell-scripting <br/>
 https://www.gnu.org/software/bash/manual/bash.html#What-is-Bash_003f <br/>
 https://pranabdas.github.io/drive/documents/technical-articles/shell-style-guide--Google.pdf  <br/>
